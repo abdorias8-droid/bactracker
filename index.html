@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BAC Tracker 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ── LOADING (shown while auth initialises) ──────────────────── -->
+<div id="app-loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- ── LOGIN SCREEN ───────────────────────────────────────────── -->
+<div id="login-screen" class="login-screen hidden">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-mark">B</div>
+      <div class="login-title">BAC Tracker <span class="login-year">2026</span></div>
+      <div class="login-subtitle">Ta progression sauvegardée dans le cloud</div>
+    </div>
+    <button id="google-signin-btn" class="btn-google" onclick="handleSignIn()">
+      <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+        <path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 20-7.6 20-21 0-1.4-.2-2.7-.5-4z" fill="#FFC107"/>
+        <path d="M6.3 14.7l7.1 5.2C15.2 15.9 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3c-7.7 0-14.4 4.4-17.7 11.7z" fill="#FF3D00"/>
+        <path d="M24 45c5.5 0 10.4-1.8 14.3-5l-6.6-5.4C29.7 36.4 27 37 24 37c-6.1 0-11.3-4.1-12.8-9.7l-7 5.4C7.5 40.5 15.2 45 24 45z" fill="#4CAF50"/>
+        <path d="M44.5 20H24v8.5h11.8c-.6 2.9-2.4 5.4-4.9 7.1l6.6 5.4C42 37.4 45 31.2 45 24c0-1.4-.2-2.7-.5-4z" fill="#1976D2"/>
+      </svg>
+      Continuer avec Google
+    </button>
+    <p class="login-note">Données locales fusionnées automatiquement avec le cloud.</p>
+  </div>
+</div>
+
+<!-- ── APP (hidden until authenticated) ───────────────────────── -->
+<div id="app-wrap" class="hidden">
+
+  <!-- Mobile toggle -->
+  <button class="menu-toggle" onclick="toggleSidebar()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <div class="sidebar-backdrop" id="backdrop" onclick="toggleSidebar()"></div>
+
+  <!-- Study notification banner -->
+  <div id="study-notif" class="study-notif hidden">
+    <div id="study-notif-text" class="study-notif-text"></div>
+    <a href="https://meet.google.com/new" target="_blank" rel="noopener" class="study-notif-meet">🎥 Meet</a>
+    <button class="study-notif-close" onclick="dismissNotif()">✕</button>
+  </div>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+      <div class="brand">
+        <div class="brand-mark">B</div>
+        <div class="brand-text">
+          <div class="brand-name">BAC Tracker</div>
+          <div class="brand-sub">2026</div>
+        </div>
+      </div>
+
+      <!-- User info -->
+      <div id="user-bar"></div>
+
+      <div class="nav-section">
+        <div class="nav-label">Navigation</div>
+        <div class="nav-item" onclick="openSearch()">
+          <span class="nav-item-icon">🔎</span>
+          <span class="nav-item-text">Rechercher</span>
+          <span class="search-shortcut">⌘K</span>
+        </div>
+        <div class="nav-item" id="nav-favorites" onclick="showFavorites()">
+          <span class="nav-item-icon">⭐</span>
+          <span class="nav-item-text">Favoris</span>
+          <span class="nav-item-badge">0</span>
+        </div>
+        <div class="nav-item" id="nav-friends" onclick="showFriendsPage()">
+          <span class="nav-item-icon">👥</span>
+          <span class="nav-item-text">Amis</span>
+          <span class="nav-item-badge" id="friends-badge" style="display:none;"></span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Matières</div>
+        <div id="subject-nav"></div>
+        <div class="nav-add" onclick="addSubject()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>Ajouter une matière</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Outils</div>
+        <div class="nav-item" onclick="togglePomodoroPanel()">
+          <span class="nav-item-icon">⏱️</span>
+          <span class="nav-item-text">Pomodoro</span>
+        </div>
+        <div class="nav-item" onclick="toggleTheme()">
+          <span class="nav-item-icon" id="theme-toggle">🌙</span>
+          <span class="nav-item-text">Thème</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Données</div>
+        <div class="nav-item" onclick="exportData()">
+          <span class="nav-item-icon">📤</span>
+          <span class="nav-item-text">Exporter</span>
+        </div>
+        <div class="nav-item" onclick="importData()">
+          <span class="nav-item-icon">📥</span>
+          <span class="nav-item-text">Importer</span>
+        </div>
+        <div class="nav-item" onclick="resetConfirm()">
+          <span class="nav-item-icon">🔄</span>
+          <span class="nav-item-text">Réinitialiser</span>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="save-btn-wrap" id="save-btn-wrap">
+          <button class="save-btn" id="save-btn" onclick="saveAll()">💾 Sauvegarder</button>
+          <span class="unsaved-dot"></span>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <div id="content"></div>
+    </main>
+
+  </div><!-- /.app -->
+
+  <!-- Pomodoro FAB -->
+  <button class="pomodoro-fab hidden" id="pomo-fab" onclick="togglePomodoroPanel()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 3h6"/>
+    </svg>
+    <span class="pomodoro-fab-badge" id="pomo-fab-badge" style="display:none;"></span>
+  </button>
+
+  <!-- Pomodoro Panel -->
+  <div class="pomodoro-panel" id="pomo-panel">
+    <div class="pomodoro-head">
+      <span class="pomodoro-title">⏱️ Pomodoro</span>
+      <button class="pomodoro-close" onclick="togglePomodoroPanel()">✕</button>
+    </div>
+    <div class="pomodoro-timer">
+      <div class="pomodoro-mode work" id="pomo-mode">Travail</div>
+      <div class="pomodoro-display" id="pomo-display">25:00</div>
+      <div class="pomodoro-controls">
+        <button class="pomodoro-btn" onclick="Pomodoro.reset()" title="Reset">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+          </svg>
+        </button>
+        <button class="pomodoro-btn play" id="pomo-play" onclick="Pomodoro.running ? Pomodoro.pause() : Pomodoro.start()">▶</button>
+        <button class="pomodoro-btn" onclick="Pomodoro.mode=Pomodoro.mode==='work'?'rest':'work';Pomodoro.reset()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+            <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="pomodoro-settings">
+      <label>
+        <span>Travail (min)</span>
+        <input type="number" min="1" max="120" value="25" onchange="Pomodoro.setWork(this.value)">
+      </label>
+      <label>
+        <span>Pause (min)</span>
+        <input type="number" min="1" max="60" value="5" onchange="Pomodoro.setRest(this.value)">
+      </label>
+    </div>
+  </div>
+
+  <!-- Search Modal -->
+  <div class="modal-backdrop search-modal" id="search-backdrop" onclick="if(event.target===this)closeSearch()">
+    <div class="search-box">
+      <div class="search-input-wrap">
+        <span style="color:var(--muted);">🔎</span>
+        <input type="text" class="search-input" id="search-input"
+               placeholder="Rechercher leçons, sous-chapitres, formules...">
+        <span class="search-shortcut">ESC</span>
+      </div>
+      <div class="search-results" id="search-results"></div>
+    </div>
+  </div>
+
+  <!-- Generic Modal -->
+  <div class="modal-backdrop" id="modal-backdrop" onclick="if(event.target===this)closeModal()">
+    <div class="modal"></div>
+  </div>
+
+  <!-- File Viewer -->
+  <div class="viewer-backdrop" id="viewer-backdrop" onclick="if(event.target===this)closeViewer()">
+    <div class="viewer-content" id="viewer-content"></div>
+  </div>
+
+  <!-- Hidden inputs -->
+  <input type="file" id="file-input" accept="image/*,application/pdf" style="display:none;">
+  <input type="file" id="import-input" accept=".json" style="display:none;">
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+</div><!-- /#app-wrap -->
+
+<!-- ── SCRIPTS ─────────────────────────────────────────────────── -->
+<!-- Supabase UMD must load first -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="data.js"></script>
+<script src="storage.js"></script>
+<script src="supabase.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
